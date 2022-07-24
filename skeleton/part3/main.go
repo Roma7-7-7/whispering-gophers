@@ -17,7 +17,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -31,21 +31,36 @@ type Message struct {
 func main() {
 	flag.Parse()
 
-	// TODO: Create a net.Listener listening from the address in the "listen" flag.
+	l, err := net.Listen("tcp", *listenAddr)
+	if err != nil {
+		log.Fatalf("failed to listen to \"%s\" with tcp protocol: %v\n", *listenAddr, err)
+	}
+	defer l.Close()
 
 	for {
-		// TODO: Accept a new connection from the listener.
+		c, err := l.Accept()
+		if err != nil {
+			log.Printf("failed to accept connection: %v\n", err)
+			continue
+		}
+
 		go serve(c)
 	}
 }
 
 func serve(c net.Conn) {
-	// TODO: Use defer to Close the connection when this function returns.
+	defer c.Close()
 
-	// TODO: Create a new json.Decoder reading from the connection.
+	d := json.NewDecoder(c)
 	for {
-		// TODO: Create an empty message.
-		// TODO: Decode a new message into the variable you just created.
-		// TODO: Print the message to the standard output.
+		msg := Message{}
+		if err := d.Decode(&msg); err == io.EOF {
+			break
+		} else if err != nil {
+			log.Printf("failed to decode message: %v\n", err)
+			continue
+		} else {
+			log.Printf("%v\n", msg)
+		}
 	}
 }

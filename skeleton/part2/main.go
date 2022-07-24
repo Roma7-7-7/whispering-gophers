@@ -36,7 +36,7 @@ func main() {
 
 	c, err := net.Dial("tcp", *dialAddr)
 	if err != nil {
-		log.Fatalf("failed to dial to \"%s\" via tcp protocol: %v", dialAddr, err)
+		log.Fatalf("failed to dial to \"%s\" via tcp protocol: %v", *dialAddr, err)
 	}
 	defer c.Close()
 
@@ -46,7 +46,7 @@ func main() {
 		m := Message{Body: s.Text()}
 		err := e.Encode(m)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("failed to send message %v: %v", m, err)
 		}
 	}
 	if err := s.Err(); err != nil {
