@@ -19,7 +19,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/campoy/whispering-gophers/util"
+	"github.com/Roma7-7-7/whispering-gophers/util"
 )
 
 var (
@@ -62,31 +62,35 @@ type Peers struct {
 // Add creates and returns a new channel for the given peer address.
 // If an address already exists in the registry, it returns nil.
 func (p *Peers) Add(addr string) <-chan Message {
-	// TODO: Take the write lock on p.mu. Unlock it before returning (using defer).
-
-	// TODO: Check if the address is already in the peers map under the key addr.
-	// TODO: If it is, return nil.
-
-	// TODO: Make a new channel of messages
-	// TODO: Add it to the peers map
-	// TODO: Return the newly created channel.
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if _, ok := p.m[addr]; ok {
+		return nil
+	} else {
+		ch := make(chan Message)
+		p.m[addr] = ch
+		return ch
+	}
 }
 
 // Remove deletes the specified peer from the registry.
 func (p *Peers) Remove(addr string) {
-	// TODO: Take the write lock on p.mu. Unlock it before returning (using defer).
-	// TODO: Delete the peer from the peers map.
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	delete(p.m, addr)
 }
 
 // List returns a slice of all active peer channels.
 func (p *Peers) List() []chan<- Message {
-	// TODO: Take the read lock on p.mu. Unlock it before returning (using defer).
-	// TODO: Declare a slice of chan<- Message.
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 
-	for /* TODO: Iterate over the map using range */ {
-		// TODO: Append each channel into the slice.
+	var result []chan<- Message
+	for _, ch := range p.m {
+		result = append(result, ch)
 	}
-	// TODO: Return the slice.
+
+	return result
 }
 
 func serve(c net.Conn) {
