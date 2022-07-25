@@ -15,7 +15,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/campoy/whispering-gophers/util"
+	"github.com/Roma7-7-7/whispering-gophers/util"
 )
 
 var (
@@ -64,16 +64,17 @@ func serve(c net.Conn) {
 	}
 }
 
-// TODO: Make a new channel of Messages.
+var msgs = make(chan Message)
 
 func readInput() {
+	defer close(msgs)
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
 		m := Message{
 			Addr: self,
 			Body: s.Text(),
 		}
-		// TODO: Send the message to the channel of messages.
+		msgs <- m
 	}
 	if err := s.Err(); err != nil {
 		log.Fatal(err)
@@ -90,7 +91,7 @@ func dial(addr string) {
 
 	e := json.NewEncoder(c)
 
-	for /* TODO: Receive messages from the channel using range, storing them in the variable m. */ {
+	for m := range msgs {
 		err := e.Encode(m)
 		if err != nil {
 			log.Println(addr, err)
